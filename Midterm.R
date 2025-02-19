@@ -2,8 +2,6 @@ library(dplyr)
 library(readr)
 library(ggplot2)
 
-setwd("~/Downloads/MBiotech/Semester 3/Health Data Visualization in Tableau/Midterm")
-
 #load the datasets
 hcv_data <- read_csv("HCV-Egy-Data.csv")
 
