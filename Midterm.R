@@ -9,9 +9,6 @@ hcv_data <- read_csv("HCV-Egy-Data.csv")
 colnames(hcv_data) <- gsub(" ", "_", colnames(hcv_data))
 print(colnames(hcv_data))
 
-#rename column ALT4 to ALT_4
-hcv_data <- hcv_data %>% rename(alt_4 = ALT4)
-
 str(hcv_data)
 
 #factorizes the categorical variables 
@@ -462,6 +459,50 @@ print(alt_gender_plots)
 
 #RNA BASE
 #ALL
+# Define RNA_Base bins
+hcv_data <- hcv_data %>%
+  mutate(RNA_Base_Group = cut(RNA_Base, 
+                              breaks = c(0, 5, 1201086),  
+                              labels = c("0-5", ">5"),
+                              include.lowest = TRUE))
+
+# Count the number of patients in each RNA_Base group
+rna_base_distribution <- hcv_data %>%
+  group_by(RNA_Base_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print("Table for RNA_Base Distribution")
+print(rna_base_distribution)
+
+# Plot general RNA_Base distribution
+ggplot(rna_base_distribution, aes(x = RNA_Base_Group, y = Count, fill = RNA_Base_Group)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(title = "RNA_Base Distribution of HCV Patients",
+       x = "RNA_Base Group",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Blues")
+
+#BY GENDER
+# Count the number of patients in each RNA_Base group by gender
+rna_base_gender_distribution <- hcv_data %>%
+  group_by(RNA_Base_Group, Gender) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print("Table for RNA_Base Distribution by Gender")
+print(rna_base_gender_distribution)
+
+# Plot RNA_Base distribution broken down by gender
+ggplot(rna_base_gender_distribution, aes(x = RNA_Base_Group, y = Count, fill = Gender)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "RNA_Base Distribution by Gender",
+       x = "RNA_Base Group",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_manual(values = c("steelblue", "pink"))
+
+#RNA 4
+#ALL
 # Ensure RNA 4 is numeric
 hcv_data <- hcv_data %>%
   mutate(RNA_4 = as.numeric(RNA_4))
@@ -842,3 +883,239 @@ for (symptom in symptom_cols) {
   )
 }
 
+# WBC Distribution by Age
+hcv_data <- hcv_data %>%
+  mutate(WBC_Group = cut(WBC, 
+                         breaks = c(0, 4000, 11000, 12101),  
+                         labels = c("0-4000", "4000-11000", "11000-12101"),
+                         include.lowest = TRUE))
+
+wbc_age_distribution <- hcv_data %>%
+  group_by(WBC_Group, Age_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print(wbc_age_distribution)
+
+ggplot(wbc_age_distribution, aes(x = WBC_Group, y = Count, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "WBC Distribution by Age",
+       x = "WBC Group",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Blues")
+
+# RBC Distribution by Age
+hcv_data <- hcv_data %>%
+  mutate(RBC_Group = cut(RBC, 
+                         breaks = c(0, 3000000, 5000000, 5018451),  
+                         labels = c("0-3M", "3M-5M", "5M-5.018M"),
+                         include.lowest = TRUE))
+
+rbc_age_distribution <- hcv_data %>%
+  group_by(RBC_Group, Age_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print(rbc_age_distribution)
+
+ggplot(rbc_age_distribution, aes(x = RBC_Group, y = Count, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "RBC Distribution by Age",
+       x = "RBC Group",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Blues")
+
+#HEMOGLOBIN
+# Define HGB bins based on gender
+hcv_data <- hcv_data %>%
+  mutate(HGB_Group = case_when(
+    Gender == "Male" & HGB >= 2 & HGB < 14 ~ "2-14",
+    Gender == "Male" & HGB >= 14 & HGB <= 17.5 ~ "14-17.5",
+    Gender == "Male" & HGB > 17.5 & HGB <= 20 ~ "17.5-20",
+    Gender == "Female" & HGB >= 2 & HGB < 12.3 ~ "2-12.3",
+    Gender == "Female" & HGB >= 12.3 & HGB <= 15.3 ~ "12.3-15.3",
+    Gender == "Female" & HGB > 15.3 & HGB <= 20 ~ "15.3-20",
+    TRUE ~ NA_character_
+  ))
+
+# Count distribution by age
+hgb_age_distribution <- hcv_data %>%
+  group_by(HGB_Group, Age_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print("Table for Hemoglobin (HGB) by Age")
+print(hgb_age_distribution)
+
+# Plot HGB distribution by age
+ggplot(hgb_age_distribution, aes(x = HGB_Group, y = Count, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "Hemoglobin (HGB) Distribution by Age",
+       x = "Hemoglobin Group",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Blues")
+
+#PLATELET
+# Define Platelet bins
+hcv_data <- hcv_data %>%
+  mutate(Plat_Group = cut(Plat, 
+                          breaks = c(93013, 100000, 255000, 226465),  
+                          labels = c("93K-100K", "100K-255K", "255K-226K"), 
+                          include.lowest = TRUE))
+
+# Count distribution by age
+plat_age_distribution <- hcv_data %>%
+  group_by(Plat_Group, Age_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print("Table for Platelet (Plat) by Age")
+print(plat_age_distribution)
+
+# Plot Platelet distribution by age
+ggplot(plat_age_distribution, aes(x = Plat_Group, y = Count, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "Platelet (Plat) Distribution by Age",
+       x = "Platelet Group",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Blues")
+
+#AST
+# Define AST_1 bins
+hcv_data <- hcv_data %>%
+  mutate(AST1_Group = cut(AST_1, 
+                          breaks = c(0, 20, 40, 128),  
+                          labels = c("0-20", "20-40", "40-128"),
+                          include.lowest = TRUE))
+
+# Count AST distribution by age
+ast_age_distribution <- hcv_data %>%
+  group_by(AST1_Group, Age_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print("Table for AST1 by Age")
+print(ast_age_distribution)
+
+# Plot AST1 distribution by age
+ggplot(ast_age_distribution, aes(x = AST1_Group, y = Count, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "AST1 (1 Week) Distribution by Age",
+       x = "AST1 Group",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Blues")
+
+#ALT
+# Define ALT variables
+alt_vars <- c("ALT_1", "ALT4", "ALT_12", "ALT_24", "ALT_36", "ALT_48", "ALT_after_24_w")
+
+# Ensure ALT variables are numeric
+hcv_data[alt_vars] <- lapply(hcv_data[alt_vars], as.numeric)
+
+# Categorize ALT values into bins
+for (alt in alt_vars) {
+  hcv_data <- hcv_data %>%
+    mutate(!!paste0(alt, "_Group") := cut(.data[[alt]], 
+                                          breaks = c(0, 20, 40, 128),  
+                                          labels = c("0-20", "20-40", "40-128"),
+                                          include.lowest = TRUE))
+}
+
+# Loop through all ALT variables and generate tables + plots
+for (alt in alt_vars) {
+  alt_age_distribution <- hcv_data %>%
+    group_by(.data[[paste0(alt, "_Group")]], Age_Group) %>%
+    summarise(Count = n(), .groups = "drop")
+  
+  print(paste("Table for", alt, "by Age"))
+  print(alt_age_distribution)
+  
+  print(
+    ggplot(alt_age_distribution, aes(x = .data[[paste0(alt, "_Group")]], y = Count, fill = Age_Group)) +
+      geom_bar(stat = "identity", position = "dodge", color = "black") +
+      labs(title = paste(alt, "Distribution by Age"),
+           x = "ALT Group",
+           y = "Count") +
+      theme_minimal() +
+      scale_fill_brewer(palette = "Blues")
+  )
+}
+
+#RNA
+# Define RNA variables
+rna_vars <- c("RNA_Base", "RNA_4", "RNA_12", "RNA_EOT", "RNA_EF")
+
+# Ensure RNA variables are numeric
+hcv_data[rna_vars] <- lapply(hcv_data[rna_vars], as.numeric)
+
+# Categorize RNA values into bins
+rna_bins <- list(
+  "RNA_Base" = c(0, 5, 1201086),
+  "RNA_4" = c(0, 5, 1201715),
+  "RNA_12" = c(0, 5, 1201715),
+  "RNA_EOT" = c(0, 5, 808450),
+  "RNA_EF" = c(0, 5, 808450)
+)
+
+rna_labels <- c("0-5", ">5")
+
+# Apply binning to all RNA variables
+for (rna in rna_vars) {
+  hcv_data <- hcv_data %>%
+    mutate(!!paste0(rna, "_Group") := cut(.data[[rna]], 
+                                          breaks = rna_bins[[rna]],  
+                                          labels = rna_labels,
+                                          include.lowest = TRUE))
+}
+
+# Loop through all RNA variables and generate tables + plots
+for (rna in rna_vars) {
+  rna_age_distribution <- hcv_data %>%
+    group_by(.data[[paste0(rna, "_Group")]], Age_Group) %>%
+    summarise(Count = n(), .groups = "drop")
+  
+  print(paste("Table for", rna, "by Age"))
+  print(rna_age_distribution)
+  
+  print(
+    ggplot(rna_age_distribution, aes(x = .data[[paste0(rna, "_Group")]], y = Count, fill = Age_Group)) +
+      geom_bar(stat = "identity", position = "dodge", color = "black") +
+      labs(title = paste(rna, "Distribution by Age"),
+           x = "RNA Group",
+           y = "Count") +
+      theme_minimal() +
+      scale_fill_brewer(palette = "Blues")
+  )
+}
+
+# Baseline Histological Grading Distribution by Age
+grading_age_distribution <- hcv_data %>%
+  group_by(Baseline_histological_Grading, Age_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print("Table for Baseline Histological Grading by Age")
+print(grading_age_distribution)
+
+ggplot(grading_age_distribution, aes(x = Baseline_histological_Grading, y = Count, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "Baseline Histological Grading Distribution by Age",
+       x = "Baseline_histological_Grading",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2")
+
+# Baseline Histological Staging Distribution by Age
+staging_age_distribution <- hcv_data %>%
+  group_by(Baselinehistological_staging,Age_Group) %>%
+  summarise(Count = n(), .groups = "drop")
+
+print("Table for Baseline Histological Staging by Age")
+print(staging_age_distribution)
+
+ggplot(staging_age_distribution, aes(x = Baselinehistological_staging, y = Count, fill = Age_Group)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  labs(title = "Baseline Histological Staging Distribution by Age",
+       x = "Baselinehistological_staging",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2")
